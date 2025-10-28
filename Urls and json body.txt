@@ -1,0 +1,647 @@
+1. Register User
+POST /api/users/register
+
+json
+{
+  "company_id": 1,
+  "first_name": "John",
+  "last_name": "Doe",
+  "email": "john.doe@example.com",
+  "password": "password123",
+  "role": "exterminator",
+  "is_active": 1
+}
+Response:
+
+json
+{
+  "success": true,
+  "message": "User registered successfully. Please verify your email with OTP.",
+  "userId": 15,
+  "role": "exterminator",
+  "requiresVerification": true
+}
+2. Verify Registration OTP
+POST /api/users/verify-registration
+
+json
+{
+  "email": "john.doe@example.com",
+  "otp": "123456"
+}
+Response:
+
+json
+{
+  "success": true,
+  "message": "Email verified successfully. Your account is now active."
+}
+3. Resend OTP
+POST /api/users/resend-otp
+
+json
+{
+  "email": "john.doe@example.com"
+}
+Response:
+
+json
+{
+  "success": true,
+  "message": "OTP sent successfully"
+}
+4. Login User
+POST /api/users/login
+
+json
+{
+  "email": "john.doe@example.com",
+  "password": "password123"
+}
+Response:
+
+json
+{
+  "success": true,
+  "message": "Login successful",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": 15,
+    "company_id": 1,
+    "first_name": "John",
+    "last_name": "Doe",
+    "email": "john.doe@example.com",
+    "role": "exterminator",
+    "profile_image": "/uploads/profile_pictures/123456789.jpg",
+    "is_active": 1
+  }
+}
+5. Forgot Password (Request OTP)
+POST /api/users/forgot-password
+
+json
+{
+  "email": "john.doe@example.com"
+}
+Response:
+
+json
+{
+  "success": true,
+  "message": "If this email exists, a reset OTP has been sent."
+}
+6. Verify Password Reset OTP
+POST /api/users/verify-reset-otp
+
+json
+{
+  "email": "john.doe@example.com",
+  "otp": "654321"
+}
+Response:
+
+json
+{
+  "success": true,
+  "message": "OTP verified successfully",
+  "resetToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+7. Reset Password
+POST /api/users/reset-password
+
+json
+{
+  "resetToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "newPassword": "newpassword123"
+}
+Response:
+
+json
+{
+  "success": true,
+  "message": "Password reset successful"
+}
+🔒 PROTECTED ROUTES (Require Authorization Header: Bearer <token>)
+8. Get All Users
+GET /api/users/getall
+Headers:
+
+json
+{
+  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+Response:
+
+json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "company_id": 1,
+      "first_name": "John",
+      "last_name": "Doe",
+      "role": "exterminator",
+      "profile_image": "/uploads/profile_pictures/123456789.jpg",
+      "email": "john.doe@example.com",
+      "is_active": 1,
+      "is_deleted": 0,
+      "created_at": "2024-01-15T10:30:00.000Z"
+    }
+  ]
+}
+9. Get User By ID
+GET /api/users/:id
+Headers:
+
+json
+{
+  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+Response:
+
+json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "company_id": 1,
+    "first_name": "John",
+    "last_name": "Doe",
+    "role": "exterminator",
+    "profile_image": "/uploads/profile_pictures/123456789.jpg",
+    "email": "john.doe@example.com",
+    "is_active": 1,
+    "is_deleted": 0,
+    "created_at": "2024-01-15T10:30:00.000Z",
+    "updated_at": "2024-01-15T10:30:00.000Z"
+  }
+}
+10. Update User
+PUT /api/users/update/:userId
+Headers:
+
+json
+{
+  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "Content-Type": "multipart/form-data"
+}
+Form Data:
+
+json
+{
+  "first_name": "John",
+  "last_name": "Smith",
+  "role": "company_admin",
+  "is_active": 1
+}
+// + profile_image file
+Response:
+
+json
+{
+  "success": true,
+  "message": "User updated successfully"
+}
+11. Delete User
+DELETE /api/users/delete/:id
+Headers:
+
+json
+{
+  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+Response:
+
+json
+{
+  "success": true,
+  "message": "User deleted successfully"
+}
+12. Update Own Profile
+PUT /api/users/profile/update
+Headers:
+
+json
+{
+  "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "Content-Type": "multipart/form-data"
+}
+Form Data:
+
+json
+{
+  "first_name": "John",
+  "last_name": "Smith"
+}
+// + profile_image file (optional)
+Response:
+
+json
+{
+  "success": true,
+  "message": "Profile updated successfully"
+}
+
+## 📍 **LOCATION APIS**
+
+### **13. Create Location**
+```http
+POST /locations/create
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+**Body:**
+```json
+{
+  "customer_id": 1,
+  "name": "Main Factory",
+  "address": "Industrial Area Phase 2",
+  "city": "Karachi",
+  "zip": "75000"
+}
+```
+
+### **14. Get Locations by Customer**
+```http
+GET /locations/getall?customer_id=1
+Authorization: Bearer <token>
+```
+
+### **15. Get Location By ID**
+```http
+GET /locations/{id}
+Authorization: Bearer <token>
+```
+
+### **16. Update Location**
+```http
+PUT /locations/update/{id}
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+**Body:**
+```json
+{
+  "name": "Updated Location Name",
+  "address": "New Address",
+  "city": "Lahore"
+}
+```
+
+### **17. Delete Location**
+```http
+DELETE /locations/delete/{id}
+Authorization: Bearer <token>
+```
+
+---
+
+## 📅 **MEETING APIS**
+
+### **18. Create Meeting**
+```http
+POST /meetings/create
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+**Body:**
+```json
+{
+  "customer_id": 1,
+  "location_id": 1,
+  "meeting_date": "2024-01-15 14:30:00",
+  "notes": "Regular inspection visit"
+}
+```
+
+### **19. Get All Meetings**
+```http
+GET /meetings/getall
+Authorization: Bearer <token>
+```
+
+### **20. Get Meeting By ID**
+```http
+GET /meetings/{id}
+Authorization: Bearer <token>
+```
+
+### **21. Update Meeting**
+```http
+PUT /meetings/update/{id}
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+**Body:**
+```json
+{
+  "meeting_date": "2024-01-16 10:00:00",
+  "notes": "Updated inspection notes"
+}
+```
+
+### **22. Delete Meeting**
+```http
+DELETE /meetings/delete/{id}
+Authorization: Bearer <token>
+```
+
+---
+
+## 📸 **PHOTO APIS**
+
+### **23. Upload Photo**
+```http
+POST /photos/create
+Authorization: Bearer <token>
+Content-Type: multipart/form-data
+```
+**Body (form-data):**
+```json
+{
+  "meeting_id": 1,
+  "image": [image_file]
+}
+```
+
+### **24. Get Photos by Meeting**
+```http
+GET /photos/getall?meeting_id=1
+Authorization: Bearer <token>
+```
+
+### **25. Get Photo By ID**
+```http
+GET /photos/{id}
+Authorization: Bearer <token>
+```
+
+### **26. Update Photo**
+```http
+PUT /photos/update/{id}
+Authorization: Bearer <token>
+Content-Type: multipart/form-data
+```
+**Body (form-data):**
+```json
+{
+  "meeting_id": 2,
+  "image": [new_image_file]
+}
+```
+
+### **27. Delete Photo**
+```http
+DELETE /photos/delete/{id}
+Authorization: Bearer <token>
+```
+
+---
+
+## 🤖 **AI RESULT APIS**
+
+### **28. Create AI Result**
+```http
+POST /ai-results/create
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+**Body:**
+```json
+{
+  "photo_id": 1,
+  "total_count": 15,
+  "result_json": {
+    "flies": 5,
+    "mosquitoes": 3,
+    "butterflies": 7,
+    "beetles": 0
+  }
+}
+```
+
+### **29. Get AI Results by Photo**
+```http
+GET /ai-results/getall?photo_id=1
+Authorization: Bearer <token>
+```
+
+### **30. Get AI Result By ID**
+```http
+GET /ai-results/{id}
+Authorization: Bearer <token>
+```
+
+### **31. Update AI Result**
+```http
+PUT /ai-results/update/{id}
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+**Body:**
+```json
+{
+  "total_count": 20,
+  "result_json": {
+    "flies": 8,
+    "mosquitoes": 5,
+    "butterflies": 7,
+    "beetles": 0
+  }
+}
+```
+
+### **32. Delete AI Result**
+```http
+DELETE /ai-results/delete/{id}
+Authorization: Bearer <token>
+```
+
+---
+
+## 💳 **SUBSCRIPTION APIS**
+
+### **33. Create Subscription**
+```http
+POST /subscriptions/create
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+**Body:**
+```json
+{
+  "plan_name": "Pro 1000",
+  "photos_limit": 1000,
+  "price": 99.99,
+  "start_date": "2024-01-01",
+  "end_date": "2024-12-31"
+}
+```
+
+### **34. Get All Subscriptions**
+```http
+GET /subscriptions/getall
+Authorization: Bearer <token>
+```
+
+### **35. Get Subscription By ID**
+```http
+GET /subscriptions/{id}
+Authorization: Bearer <token>
+```
+
+### **36. Update Subscription**
+```http
+PUT /subscriptions/update/{id}
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+**Body:**
+```json
+{
+  "plan_name": "Pro 2000",
+  "photos_limit": 2000,
+  "price": 149.99
+}
+```
+
+### **37. Cancel Subscription**
+```http
+PUT /subscriptions/cancel/{id}
+Authorization: Bearer <token>
+```
+
+---
+
+## 🧾 **INVOICE APIS**
+
+### **38. Create Invoice**
+```http
+POST /invoices/create
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+**Body:**
+```json
+{
+  "invoice_number": "INV-2024-001",
+  "amount": 99.99,
+  "currency": "USD",
+  "payment_status": "pending",
+  "issued_date": "2024-01-01",
+  "due_date": "2024-01-31",
+  "subscription_id": 1
+}
+```
+
+### **39. Get All Invoices**
+```http
+GET /invoices/getall
+Authorization: Bearer <token>
+```
+
+### **40. Get Invoice By ID**
+```http
+GET /invoices/{id}
+Authorization: Bearer <token>
+```
+
+### **41. Update Invoice**
+```http
+PUT /invoices/update/{id}
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+**Body:**
+```json
+{
+  "payment_status": "paid",
+  "amount": 89.99
+}
+```
+
+### **42. Delete Invoice**
+```http
+DELETE /invoices/delete/{id}
+Authorization: Bearer <token>
+```
+
+---
+
+## 📱 **MOBILE APP WORKFLOW APIS**
+
+### **43. Mobile - Get Dashboard Data**
+```http
+GET /meetings/getall
+Authorization: Bearer <token>
+```
+
+### **44. Mobile - Quick Create Meeting with Photo**
+```http
+POST /meetings/create
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+**Body:**
+```json
+{
+  "customer_id": 1,
+  "location_id": 1,
+  "meeting_date": "2024-01-20 14:30:00",
+  "notes": "Mobile inspection"
+}
+```
+**Then upload photo:**
+```http
+POST /photos/create
+Authorization: Bearer <token>
+Content-Type: multipart/form-data
+```
+**Body (form-data):**
+```json
+{
+  "meeting_id": 1,
+  "image": [camera_image]
+}
+```
+
+---
+
+## 🎯 **SUCCESS RESPONSE FORMAT**
+```json
+{
+  "success": true,
+  "message": "Operation successful",
+  "data": { ... },
+  "userId": 1,  // for create operations
+  "token": "eyJ..."  // for login
+}
+```
+
+## ❌ **ERROR RESPONSE FORMAT**
+```json
+{
+  "success": false, 
+  "message": "Error description",
+  "error": "Detailed error message"
+}
+```
+
+---
+
+## 🔑 **AUTHORIZATION**
+- **Header:** `Authorization: Bearer <jwt_token>`
+- **Token:** Login response se milega
+- **Expiry:** 1 day
+
+---
+
+## 📂 **FILE UPLOADS**
+- **Profile Images:** Max 5MB
+- **Photos:** Max 10MB  
+- **Supported formats:** JPG, PNG, JPEG
+
+---
+
+**Frontend developer ko ye documentation de do - inme se koi API missing hai to batana! 🚀**
