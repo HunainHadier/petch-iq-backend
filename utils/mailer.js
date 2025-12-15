@@ -34,8 +34,8 @@ const getOtpTemplate = (otp, name, purpose = "verification") => {
 
 export async function sendOtpEmail(toEmail, otp, name, purpose = "verification") {
   const subject = purpose === "password_reset" 
-    ? "🔐 Your Password Reset Code" 
-    : "🔐 Your Pestiq Verification Code";
+    ? " Your Password Reset Code" 
+    : " Your Pestiq Verification Code";
 
   const mailOptions = {
     from: `"Pestiq App" <${process.env.SMTP_USER}>`,
@@ -46,7 +46,7 @@ export async function sendOtpEmail(toEmail, otp, name, purpose = "verification")
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log(`✅ OTP sent to: ${toEmail}`);
+    console.log(` OTP sent to: ${toEmail}`);
     return { success: true, message: "OTP sent successfully" };
   } catch (error) {
     console.error("❌ OTP email failed:", error.message);
@@ -59,7 +59,7 @@ export async function sendResetEmail(toEmail, resetLink) {
   const mailOptions = {
     from: `"Pestiq App" <${process.env.SMTP_USER}>`,
     to: toEmail,
-    subject: "🔐 Reset Your Password",
+    subject: " Reset Your Password",
     html: `
       <div style="font-family: Arial, sans-serif;">
         <h2 style="color:#667eea;">Password Reset Request</h2>
@@ -74,7 +74,7 @@ export async function sendResetEmail(toEmail, resetLink) {
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log(`✅ Reset email sent to: ${toEmail}`);
+    console.log(` Reset email sent to: ${toEmail}`);
     return { success: true, message: "Reset email sent successfully" };
   } catch (error) {
     console.error("❌ Reset email failed:", error.message);

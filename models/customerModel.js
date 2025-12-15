@@ -1,50 +1,69 @@
 import db from "../config/db.js";
 
-export const createCustomerModel = async (company_id, name, contact_person, phone, email) => {
-  const sql = `INSERT INTO customers (company_id, name, contact_person, phone, email, created_at, updated_at)
-               VALUES (?, ?, ?, ?, ?, NOW(), NOW())`;
-  const [result] = await db.execute(sql, [company_id, name, contact_person, phone, email]);
+// ✅ Add new customer
+export const addCustomerModel = async ({ company_id, name, email, phone, address }) => {
+  const [result] = await db.execute(
+    `INSERT INTO customers (company_id, name, email, phone, address, created_at)
+     VALUES (?, ?, ?, ?, ?, NOW())`,
+    [company_id, name, email, phone, address]
+  );
   return result.insertId;
 };
 
-export const getCustomersByCompany = async (company_id) => {
+// ✅ Get all customers by company_id
+// export const getCustomersModel = async (company_id) => {
+//   const [rows] = await db.execute(
+//     `SELECT * FROM customers WHERE company_id = ? ORDER BY id DESC`,
+//     [company_id]
+//   );
+//   return rows;
+// };
+
+
+export const getCustomersModel = async (company_id = null) => {
+  if (!company_id) {
+    // admin → get all customers
+    const [rows] = await db.execute(`SELECT * FROM customers`);
+    return rows;
+  }
+
   const [rows] = await db.execute(
-    `SELECT id, name, contact_person, phone, email, is_active, created_at 
-     FROM customers 
-     WHERE company_id = ? AND is_active = TRUE 
-     ORDER BY id DESC`,
+    `SELECT * FROM customers WHERE company_id = ?`,
     [company_id]
   );
   return rows;
 };
 
-export const getCustomerById = async (id) => {
+
+// ✅ Get single customer by email (for duplication check)
+export const getCustomerByEmailModel = async (email, company_id) => {
   const [rows] = await db.execute(
-    `SELECT id, company_id, name, contact_person, phone, email, is_active, created_at 
-     FROM customers 
-     WHERE id = ? AND is_active = TRUE`,
-    [id]
+    `SELECT id FROM customers WHERE email = ? AND company_id = ? LIMIT 1`,
+    [email, company_id]
   );
   return rows[0];
 };
 
-export const updateCustomerModel = async (id, updates) => {
-  const fields = [];
-  const values = [];
-  for (const [key, value] of Object.entries(updates)) {
-    fields.push(`${key} = ?`);
-    values.push(value);
-  }
-  values.push(id);
-  const sql = `UPDATE customers SET ${fields.join(", ")}, updated_at = NOW() WHERE id = ?`;
-  const [result] = await db.execute(sql, values);
-  return result.affectedRows > 0;
+// ✅ Update customer
+export const updateCustomerModel = async (id, { name, email, phone, address }) => {
+  await db.execute(
+    `UPDATE customers 
+     SET name = ?, email = ?, phone = ?, address = ? 
+     WHERE id = ?`,
+    [name, email, phone, address, id]
+  );
 };
 
-export const softDeleteCustomerModel = async (id) => {
-  const [result] = await db.execute(
-    `UPDATE customers SET is_active = FALSE, updated_at = NOW() WHERE id = ?`,
-    [id]
+// ✅ Delete customer
+export const deleteCustomerModel = async (id) => {
+  await db.execute(`DELETE FROM customers WHERE id = ?`, [id]);
+};
+
+
+export const getCustomerByIdModel = async (company_id, customer_id) => {
+  const [rows] = await db.execute(
+    `SELECT * FROM customers WHERE id = ? AND company_id = ? LIMIT 1`,
+    [customer_id, company_id]
   );
-  return result.affectedRows > 0;
+  return rows.length ? rows[0] : null;
 };

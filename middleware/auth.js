@@ -1,27 +1,149 @@
-// middleware/auth.js
+// import jwt from "jsonwebtoken";
+// import { getUserById } from "../models/authModel.js";
+
+// export const authMiddleware = async (req, res, next) => {
+//   try {
+//     const token = req.header("Authorization")?.replace("Bearer ", "");
+//     if (!token) {
+//       return res.status(401).json({
+//         success: false,
+//         message: "Access denied. No token provided.",
+//       });
+//     }
+
+//     const decoded = jwt.verify(token, process.env.JWT_SECRET || "secretkey");
+
+//     // ✅ Handle 2 types of users: admin + normal/company owner user
+//     if (decoded.isAdmin || decoded.role === "admin") {
+//       req.user = {
+//         id: 0,
+//         role: "admin",
+//         company_id: 0,
+//         email: decoded.email,
+//         name: "System Admin",
+//         isAdmin: true,
+//         is_company_owner: false,
+//       };
+//     } else {
+//       // ✅ Normal / company owner user
+//       const user = await getUserById(decoded.id);
+//       if (!user || user.is_active === 0) {
+//         return res.status(401).json({
+//           success: false,
+//           message: "Invalid user token or inactive account.",
+//         });
+//       }
+
+//       let userRole = decoded.role;
+//       if (!userRole || (userRole !== "user" && userRole !== "company_owner")) {
+//         userRole = user.is_company_owner === 1 ? "company_owner" : "user";
+//       }
+
+//       req.user = {
+//         id: user.id,
+//         role: userRole,
+//         company_id: decoded.company_id || user.company_id || 0,
+//         email: user.email,
+//         name: `${user.first_name || ""} ${user.last_name || ""}`.trim(),
+//         isAdmin: false,
+//         is_company_owner: user.is_company_owner === 1,
+//       };
+//     }
+
+//     console.log("✅ Authenticated User:", req.user);
+//     next();
+//   } catch (error) {
+//     console.error("❌ Auth Middleware Error:", error);
+//     return res.status(401).json({
+//       success: false,
+//       message: "Invalid or expired token.",
+//     });
+//   }
+// };
+
+// middlewares/authMiddleware.js
 import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
-dotenv.config();
+import { getUserById } from "../models/authModel.js";
 
-export const authMiddleware = (req, res, next) => {
+export const authMiddleware = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization || req.headers.Authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
+    /* ===============================
+       ✅ READ TOKEN
+    =============================== */
+    const authHeader = req.header("Authorization");
+    const token = authHeader && authHeader.startsWith("Bearer ")
+      ? authHeader.replace("Bearer ", "")
+      : null;
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "Access denied. No token provided.",
+      });
     }
-    const token = authHeader.split(" ")[1];
-    const payload = jwt.verify(token, process.env.JWT_SECRET || "secretkey");
-    req.user = payload; // contains id, email, role
+
+    /* ===============================
+       ✅ VERIFY TOKEN
+    =============================== */
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    /* ===============================
+       ✅ ADMIN (SYSTEM LEVEL)
+    =============================== */
+    if (decoded.role === "admin") {
+      req.user = {
+        id: decoded.id,
+        role: "admin",
+        company_id: null,
+        isAdmin: true,
+      };
+      return next();
+    }
+
+    /* ===============================
+       ✅ FETCH USER FROM DB
+    =============================== */
+    const user = await getUserById(decoded.id);
+
+    if (!user || user.is_active !== 1) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid user or inactive account.",
+      });
+    }
+
+    /* ===============================
+       ✅ FINAL ROLE DECISION
+       RULE:
+       is_company_owner = 1  → company_owner
+       is_company_owner = 0  → exterminator
+    =============================== */
+    const role = user.is_company_owner === 1
+      ? "company_owner"
+      : "exterminator";
+
+    /* ===============================
+       ✅ ATTACH USER TO REQUEST
+    =============================== */
+    req.user = {
+      id: user.id,
+      role,
+      company_id: user.company_id,
+      email: user.email,
+      name: `${user.first_name || ""} ${user.last_name || ""}`.trim(),
+      isAdmin: false,
+    };
+
+    console.log("✅ Authenticated User:", req.user);
     next();
-  } catch (err) {
-    console.error("Auth error:", err.message);
-    return res.status(401).json({ success: false, message: "Invalid or expired token" });
+
+  } catch (error) {
+    console.error("❌ Auth Middleware Error:", error.message);
+    return res.status(401).json({
+      success: false,
+      message: "Invalid or expired token.",
+    });
   }
 };
 
-export const isAdmin = (req, res, next) => {
-  if (!req.user || (req.user.role !== "super_admin" && req.user.role !== "company_admin")) {
-    return res.status(403).json({ success: false, message: "Admin access required" });
-  }
-  next();
-};
+
